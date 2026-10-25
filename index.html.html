@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f766e">
+<title>Misi Harta Karun Koordinat | Matematik Tahun 4</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{--ink:#17324d;--teal:#0f766e;--gold:#fbbf24}
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(135deg,#ecfeff,#f0fdf4 48%,#fffbeb);color:var(--ink);font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif}
+  .panel{background:rgba(255,255,255,.92);border:2px solid #d1fae5;border-radius:24px;box-shadow:0 12px 30px #0f766e12}
+  .btn{border-radius:16px;padding:12px 18px;font-weight:800;transition:transform .15s,filter .15s;box-shadow:0 4px 0 #00000016}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.04)}.btn:active{transform:translateY(2px);box-shadow:none}
+  .primary{background:#0f766e;color:white}.gold{background:#fbbf24;color:#713f12}.muted{background:#e2e8f0;color:#334155}
+  .gridboard{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;max-width:430px;margin:0 auto}
+  .cell{aspect-ratio:1;border:2px solid #bae6fd;border-radius:10px;background:#f0f9ff;display:flex;align-items:center;justify-content:center;font-size:clamp(1rem,3vw,1.5rem);font-weight:900;cursor:pointer;position:relative;transition:all .15s;min-width:0}
+  .cell:hover{background:#cffafe;transform:scale(1.03)}.cell.axis{background:#e2e8f0;border-color:#cbd5e1;cursor:default;color:#475569}
+  .cell.target{background:#fde68a;border-color:#f59e0b;animation:pulse 1s infinite}.cell.found{background:#bbf7d0;border-color:#22c55e}
+  .cell .coord{font-size:10px;position:absolute;bottom:2px;right:4px;color:#64748b}
+  .station{border-radius:16px;padding:10px 8px;text-align:center;font-weight:800;border:2px solid #cbd5e1;background:white;color:#64748b}
+  .station.active{background:#ccfbf1;border-color:#0f766e;color:#115e59}.station.done{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .choice{border:2px solid #bae6fd;border-radius:14px;padding:12px;background:#f0f9ff;font-weight:800}.choice:hover{background:#cffafe;border-color:#0891b2}
+  .choice:disabled{opacity:.65;cursor:not-allowed}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 #f59e0b55}50%{box-shadow:0 0 0 8px #f59e0b00}}
+  @keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+  .pop{animation:pop .35s ease-out}.hidden{display:none!important}
+  .treasure{font-size:4rem;filter:drop-shadow(0 5px 2px #92400e25)}
+  @media(max-width:480px){.gridboard{gap:3px}.cell{border-radius:7px;border-width:1px}.cell .coord{font-size:8px}.panel{border-radius:18px}}
+  @media print{body{background:white}.no-print{display:none!important}.certificate{border:5px double #0f766e!important;box-shadow:none!important;break-inside:avoid}.panel{box-shadow:none}}
+</style>
+</head>
+<body class="min-h-screen">
+<header class="px-4 pt-5 pb-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3"><div class="text-4xl" aria-hidden="true">🧭</div><div><p class="text-xs sm:text-sm font-black uppercase tracking-widest text-teal-700">Matematik Tahun 4 · SK 7.1</p><h1 class="text-xl sm:text-3xl font-black">Misi Harta Karun Koordinat</h1></div></div>
+    <div class="hidden sm:block rounded-2xl bg-amber-100 px-4 py-2 text-amber-900 font-bold">🏴‍☠️ Sedia, kapten?</div>
+  </div>
+</header>
+<main class="max-w-5xl mx-auto px-4 pb-10">
+  <section id="welcome" class="panel p-5 sm:p-8 mt-3 text-center">
+    <div class="text-6xl mb-2" aria-hidden="true">🏝️</div>
+    <h2 class="text-2xl sm:text-4xl font-black text-teal-800 mb-3">Jom cari harta karun!</h2>
+    <p class="max-w-2xl mx-auto text-slate-600 mb-6">Selesaikan 5 misi untuk membuka peti harta karun. Baca koordinat dengan teliti: <b>(x, y)</b> — paksi-x dahulu, kemudian paksi-y.</p>
+    <div class="max-w-md mx-auto text-left">
+      <label for="playerName" class="block font-extrabold mb-2">Nama panggilan kapten</label>
+      <input id="playerName" maxlength="24" autocomplete="given-name" placeholder="Contoh: Aisyah" class="w-full rounded-2xl border-2 border-teal-200 px-4 py-3 text-lg outline-none focus:border-teal-600">
+      <p id="nameError" class="text-sm text-rose-600 mt-2 hidden">Masukkan nama panggilan dahulu ya!</p>
+      <button id="startBtn" class="btn primary w-full mt-4 text-lg">Mulakan Misi! 🚀</button>
+    </div>
+    <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+      <div class="bg-cyan-50 rounded-2xl p-3"><span class="text-2xl">📍</span><p class="font-bold">Baca koordinat</p><p class="text-slate-600">Paksi-x dan paksi-y</p></div>
+      <div class="bg-emerald-50 rounded-2xl p-3"><span class="text-2xl">🧠</span><p class="font-bold">Cuba dan belajar</p><p class="text-slate-600">Boleh cuba semula</p></div>
+      <div class="bg-amber-50 rounded-2xl p-3"><span class="text-2xl">🏆</span><p class="font-bold">Kutip ganjaran</p><p class="text-slate-600">Dapatkan sijil kapten</p></div>
+    </div>
+  </section>
+
+  <section id="game" class="hidden mt-3">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+      <div class="panel p-4 flex items-center gap-3"><span class="text-3xl">🧑‍✈️</span><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Kapten</p><p id="hudName" class="font-black text-lg">—</p></div></div>
+      <div class="panel p-4 flex items-center gap-3"><span class="text-3xl">⭐</span><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Skor</p><p class="font-black text-lg"><span id="score">0</span> / 500</p></div></div>
+      <div class="panel p-4 flex items-center gap-3"><span class="text-3xl">⏱️</span><div><p class="text-xs uppercase tracking-wide text-slate-500 font-bold">Masa</p><p id="timer" class="font-black text-lg">00:00</p></div></div>
+    </div>
+    <div class="panel p-3 sm:p-4 mb-4">
+      <p class="font-black mb-3 text-center">Peta perjalanan</p>
+      <div id="stationMap" class="grid grid-cols-5 gap-2"></div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <section class="panel p-4 sm:p-5">
+        <div class="flex items-center justify-between mb-3"><span id="missionLabel" class="rounded-full bg-teal-100 text-teal-800 px-3 py-1 text-sm font-black">Misi 1 daripada 5</span><span class="text-2xl">🗺️</span></div>
+        <h2 id="questionTitle" class="text-xl sm:text-2xl font-black mb-2">Cabaran koordinat</h2>
+        <p id="questionText" class="text-slate-700 leading-relaxed mb-4"></p>
+        <div id="answerArea" class="space-y-2"></div>
+        <div id="feedback" role="status" aria-live="polite" class="hidden mt-4 rounded-2xl p-3 font-bold"></div>
+        <button id="nextBtn" class="btn primary w-full mt-4 hidden">Ke Misi Seterusnya ➜</button>
+      </section>
+      <section class="panel p-4 sm:p-5">
+        <div class="flex justify-between items-center mb-2"><h2 class="text-lg font-black">Grid koordinat</h2><span class="text-sm font-bold text-slate-500">Suku pertama</span></div>
+        <p class="text-sm text-slate-600 mb-3">Klik petak yang betul jika soalan meminta anda memilih lokasi. Nombor pada grid menunjukkan <b>(x, y)</b>.</p>
+        <div id="gridBoard" class="gridboard" aria-label="Grid koordinat dari 0 hingga 5"></div>
+        <div class="mt-3 flex justify-center gap-4 text-sm font-bold text-slate-600"><span>➡️ Paksi-x</span><span>⬆️ Paksi-y</span></div>
+        <div class="mt-3 bg-amber-50 rounded-xl p-3 text-sm text-amber-900"><b>Petua kapten:</b> Dari (0,0), bergerak ke kanan untuk nilai x, kemudian ke atas untuk nilai y.</div>
+      </section>
+    </div>
+  </section>
+
+  <section id="finish" class="hidden mt-3">
+    <div class="panel p-5 sm:p-8 text-center mb-5">
+      <div class="treasure pop" aria-hidden="true">🏆💎</div>
+      <h2 class="text-3xl sm:text-4xl font-black text-teal-800 mt-2">Tahniah, kapten!</h2>
+      <p class="text-lg mt-2">Anda berjaya menemui harta karun!</p>
+      <div class="grid grid-cols-2 gap-3 max-w-md mx-auto my-5">
+        <div class="rounded-2xl bg-amber-100 p-4"><p class="text-sm font-bold text-amber-900">Skor akhir</p><p id="finalScore" class="text-3xl font-black text-amber-950">0/500</p></div>
+        <div class="rounded-2xl bg-cyan-100 p-4"><p class="text-sm font-bold text-cyan-900">Masa diambil</p><p id="finalTime" class="text-3xl font-black text-cyan-950">00:00</p></div>
+      </div>
+      <p id="finalMessage" class="text-slate-600 mb-5"></p>
+    </div>
+    <div id="certificate" class="certificate panel p-6 sm:p-10 text-center border-4 border-double border-amber-400">
+      <p class="text-5xl mb-3">🧭 🏴‍☠️ 💎</p>
+      <p class="uppercase tracking-[.2em] text-sm font-black text-teal-700">Sijil Penerokaan Matematik</p>
+      <h2 class="text-2xl sm:text-4xl font-black text-teal-900 my-4">Sijil Kapten Koordinat</h2>
+      <p>Dengan bangganya dianugerahkan kepada</p>
+      <p id="certName" class="text-3xl sm:text-4xl font-black text-amber-700 my-4 break-words">Nama Pemain</p>
+      <p>kerana berjaya menyelesaikan 5 misi koordinat Suku Pertama</p>
+      <p class="mt-4 font-bold">Skor: <span id="certScore">0/500</span> · Masa: <span id="certTime">00:00</span></p>
+      <div class="flex justify-between items-end mt-8 text-sm text-slate-500"><span>Matematik Tahun 4</span><span>Teruskan meneroka! ⭐</span></div>
+    </div>
+    <div class="flex flex-col sm:flex-row justify-center gap-3 mt-5 no-print"><button id="printBtn" class="btn gold">🖨️ Cetak / Simpan PDF</button><button id="restartBtn" class="btn primary">🔄 Main Semula</button></div>
+  </section>
+  <footer class="text-center text-xs text-slate-500 mt-8 px-4">Standard Kandungan 7.1 · Standard Pembelajaran 7.1.2 · Dibina untuk pembelajaran Matematik Tahun 4</footer>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const missions = [
+    {type:"click", title:"Jejak Kapal Lanun", text:"Kapal lanun berada pada koordinat (3, 2). Klik petak yang betul untuk mencari petunjuk pertama!", answer:[3,2], hint:"Hebat! Petunjuk seterusnya berada berhampiran pulau yang tinggi."},
+    {type:"choice", title:"Peti di Pulau Tinggi", text:"Lihat titik berwarna pada grid. Apakah koordinat titik itu? Ingat: (x, y).", point:[2,4], options:["(4, 2)","(2, 4)","(2, 3)","(3, 4)"], correct:1, hint:"Bagus! Anda sudah tahu cara membaca titik. Teruskan ke teluk seterusnya."},
+    {type:"click", title:"Teluk Penyu", text:"Penyu menjaga kunci harta karun pada koordinat (5, 1). Klik lokasi penyu pada grid.", answer:[5,1], hint:"Anda menemui kunci! Misi seterusnya menguji pilihan koordinat."},
+    {type:"choice", title:"Peta Kapten", text:"Kapten menandakan titik pada (4, 3). Pilih koordinat yang betul.", point:[4,3], options:["(3, 4)","(4, 2)","(4, 3)","(5, 3)"], correct:2, hint:"Tepat! Satu lagi cabaran sebelum peti dibuka."},
+    {type:"click", title:"Peti Harta Karun", text:"Peti terakhir tersembunyi pada koordinat (2, 5). Klik petak yang tepat untuk membuka harta karun!", answer:[2,5], hint:"Misi selesai! Anda berjaya menggunakan koordinat untuk mencari harta karun."}
+  ];
+  let player="", index=0, score=0, startedAt=0, timerId=null, locked=false, completed=[];
+  const formatTime = seconds => `${String(Math.floor(seconds/60)).padStart(2,"0")}:${String(seconds%60).padStart(2,"0")}`;
+  const elapsed = () => Math.floor((Date.now()-startedAt)/1000);
+  function updateTimer(){ $("timer").textContent=formatTime(elapsed()); }
+  function buildStations(){
+    $("stationMap").innerHTML=missions.map((m,i)=>`<div id="station${i}" class="station ${i===index?"active":completed.includes(i)?"done":""}"><div class="text-xl">${completed.includes(i)?"✅":["🚢","🏝️","🐢","🧭","💎"][i]}</div><div class="text-xs">Misi ${i+1}</div></div>`).join("");
+  }
+  function buildGrid(){
+    const board=$("gridBoard"); board.innerHTML="";
+    // Paksi-y dilukis dari 5 ke 0; paksi-x dari 0 ke 5.
+    for(let y=5;y>=0;y--){
+      for(let x=0;x<=5;x++){
+        const cell=document.createElement("button");
+        cell.type="button"; cell.className="cell"; cell.dataset.x=x; cell.dataset.y=y;
+        cell.setAttribute("aria-label",`Koordinat (${x}, ${y})`);
+        if(x===0 || y===0){cell.classList.add("axis");cell.textContent=`${x===0?y:x}`;cell.setAttribute("aria-label",`Paksi ${x===0?"y":"x"} nilai ${x===0?y:x}`);}
+        else cell.innerHTML=`<span class="coord">(${x},${y})</span>`;
+        if(x===0&&y===0){cell.textContent="0";cell.classList.add("axis");}
+        cell.addEventListener("click",()=>onGridClick(x,y));
+        board.appendChild(cell);
+      }
+    }
+  }
+  function drawPoint(point, isTarget=false){
+    document.querySelectorAll(".cell").forEach(c=>{c.classList.remove("target","found");});
+    if(!point)return;
+    const cell=document.querySelector(`.cell[data-x="${point[0]}"][data-y="${point[1]}"]`);
+    if(cell){cell.classList.add(isTarget?"target":"found");cell.innerHTML=isTarget?`📍<span class="coord">(${point[0]},${point[1]})</span>`:`💎<span class="coord">(${point[0]},${point[1]})</span>`;}
+  }
+  function loadMission(){
+    locked=false; const m=missions[index];
+    $("missionLabel").textContent=`Misi ${index+1} daripada ${missions.length}`;
+    $("questionTitle").textContent=m.title; $("questionText").textContent=m.text;
+    $("feedback").className="hidden mt-4 rounded-2xl p-3 font-bold"; $("feedback").textContent="";
+    $("nextBtn").classList.add("hidden"); $("answerArea").innerHTML="";
+    buildStations(); buildGrid();
+    if(m.type==="choice"){
+      drawPoint(m.point,true);
+      m.options.forEach((option,i)=>{
+        const b=document.createElement("button");b.type="button";b.className="choice w-full text-left";b.textContent=`${String.fromCharCode(65+i)}. ${option}`;
+        b.addEventListener("click",()=>checkChoice(i));$("answerArea").appendChild(b);
+      });
+    } else {
+      $("answerArea").innerHTML='<div class="rounded-xl bg-cyan-50 p-3 text-sm text-cyan-900">Pilih petak pada grid di sebelah untuk menjawab.</div>';
+    }
+  }
+  function feedback(correct, message){
+    const box=$("feedback"); box.className=`mt-4 rounded-2xl p-3 font-bold pop ${correct?"bg-emerald-100 text-emerald-900":"bg-rose-100 text-rose-900"}`;
+    box.textContent=message;
+  }
+  function correctAnswer(){
+    if(locked)return; locked=true; score+=100; completed.push(index);
+    $("score").textContent=score;
+    feedback(true,`🎉 Tepat sekali! ${missions[index].hint}`);
+    $("nextBtn").classList.remove("hidden"); $("nextBtn").textContent=index===missions.length-1?"Buka Harta Karun! 🏆":"Ke Misi Seterusnya ➜";
+    $("answerArea").querySelectorAll("button").forEach(b=>b.disabled=true);
+    buildStations();
+  }
+  function wrongAnswer(){
+    feedback(false,"Belum tepat, kapten! 😊 Cuba lagi. Semak paksi-x dahulu, kemudian paksi-y.");
+  }
+  function onGridClick(x,y){
+    if(locked)return; const m=missions[index]; if(m.type!=="click")return;
+    if(x===m.answer[0]&&y===m.answer[1]){drawPoint([x,y],false);correctAnswer();}
+    else wrongAnswer();
+  }
+  function checkChoice(i){
+    if(locked)return; const m=missions[index];
+    if(i===m.correct){drawPoint(m.point,false);correctAnswer();}else wrongAnswer();
+  }
+  function startGame(){
+    player=$("playerName").value.trim();
+    if(!player){$("nameError").classList.remove("hidden");$("playerName").focus();return;}
+    $("nameError").classList.add("hidden"); index=0;score=0;completed=[];startedAt=Date.now();
+    $("score").textContent="0";$("hudName").textContent=player;
+    $("welcome").classList.add("hidden");$("finish").classList.add("hidden");$("game").classList.remove("hidden");
+    clearInterval(timerId);timerId=setInterval(updateTimer,1000);updateTimer();loadMission();
+  }
+  function finishGame(){
+    clearInterval(timerId); const t=formatTime(elapsed());
+    $("game").classList.add("hidden");$("finish").classList.remove("hidden");
+    $("finalScore").textContent=`${score}/500`; $("finalTime").textContent=t;
+    $("certName").textContent=player; $("certScore").textContent=`${score}/500`; $("certTime").textContent=t;
+    $("finalMessage").textContent=score===500?"Semua jawapan betul pada percubaan pertama atau selepas mencuba semula. Syabas kerana tidak berputus asa!":"Misi selesai! Terus berlatih membaca koordinat untuk menjadi pakar.";
+  }
+  $("startBtn").addEventListener("click",startGame);
+  $("playerName").addEventListener("keydown",e=>{if(e.key==="Enter")startGame();});
+  $("nextBtn").addEventListener("click",()=>{if(index<missions.length-1){index++;loadMission();}else finishGame();});
+  $("printBtn").addEventListener("click",()=>window.print());
+  $("restartBtn").addEventListener("click",()=>{clearInterval(timerId);$("finish").classList.add("hidden");$("welcome").classList.remove("hidden");$("playerName").value=player;});
+})();
+</script>
+</body>
+</html>
